@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Baking App</string>
+    <string name="details_label_ingredients">Ingredients</string>
+    <string name="quantity_label_quantity">Quantity:</string>
+    <string name="instructions_tooblar_title">Instructions</string>
+    <string name="instructions_label_missing_video">Missing video</string>
+    <string name="menu_label_add_to_widget">Add to widget</string>
+    <string name="details_recipe_added_to_widget">Recipe added to widget!</string>
+</resources>

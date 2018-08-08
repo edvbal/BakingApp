@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/nameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        tools:text="Eggs"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/quantity_label_quantity"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            tools:text="Quantiy:"/>
+
+        <TextView
+            android:id="@+id/quantityValueTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingEnd="4dp"
+            android:paddingStart="4dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            tools:text="10 grams."/>
+    </LinearLayout>
+
+</LinearLayout>
