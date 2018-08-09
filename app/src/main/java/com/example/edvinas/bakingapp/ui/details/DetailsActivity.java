@@ -29,7 +29,7 @@ import butterknife.BindView;
 
 public class DetailsActivity extends BaseActivity {
     public static final String KEY_RECIPE = "key.recipe";
-    @BindView(R.id.recyclerView)
+    @BindView(R.id.detailsRecyclerView)
     RecyclerView recyclerView;
     @BindView(R.id.nameCardView)
     CardView nameCardView;
