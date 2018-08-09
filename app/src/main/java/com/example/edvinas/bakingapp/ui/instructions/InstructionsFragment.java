@@ -12,7 +12,9 @@ import com.example.edvinas.bakingapp.base.BaseFragment;
 import com.example.edvinas.bakingapp.utils.network.pojo.Steps;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -22,15 +24,23 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 
 import butterknife.BindView;
 
+import static com.google.android.exoplayer2.Player.STATE_READY;
+
 public class InstructionsFragment extends BaseFragment {
     private static final String KEY_STEPS = "key.steps";
-    private SimpleExoPlayer exoPlayer;
+    private static final String KEY_PLAYBACK_POSITION = "key.currentPlayerPosition";
+    private static final String KEY_PLAYBACK_STATE = "key.currentPlayerState";
     @BindView(R.id.descriptionTextView)
     TextView descriptionTextView;
     @BindView(R.id.emptyVideoTextView)
     TextView emptyVideoTextView;
     @BindView(R.id.simpleExoPlayerView)
     SimpleExoPlayerView simpleExoPlayerView;
+    private SimpleExoPlayer exoPlayer;
+    private Uri videoUri = null;
+    long playbackPosition = 0;
+    boolean playbackState = true;
+    private Steps steps;
 
     public static InstructionsFragment newInstance(Steps steps) {
         InstructionsFragment fragment = new InstructionsFragment();
@@ -41,24 +51,56 @@ public class InstructionsFragment extends BaseFragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (getArguments() == null) {
             return;
         }
-        Steps steps = (Steps) getArguments().getSerializable(KEY_STEPS);
+        steps = (Steps) getArguments().getSerializable(KEY_STEPS);
         if (steps == null) {
             return;
         }
+        if (savedInstanceState != null) {
+            playbackPosition = savedInstanceState.getLong(KEY_PLAYBACK_POSITION);
+            playbackState = savedInstanceState.getBoolean(KEY_PLAYBACK_STATE);
+        }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         descriptionTextView.setText(steps.getDescription());
-        String videoUrl = steps.getVideoUrl();
-        if (videoUrl != null && !videoUrl.isEmpty() && exoPlayer == null) {
-            Uri videoUri = Uri.parse(steps.getVideoUrl());
-            simpleExoPlayerView.setVisibility(View.VISIBLE);
+        simpleExoPlayerView.setVisibility(View.VISIBLE);
+        if (doesVideoUrlExist(steps.getVideoUrl()) && exoPlayer == null) {
+            videoUri = Uri.parse(steps.getVideoUrl());
             initPlayer(videoUri);
         } else {
             emptyVideoTextView.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (videoUri != null && exoPlayer == null) {
+            initPlayer(videoUri);
+        }
+    }
+
+    @Override
+    public int getLayoutId() {
+        return R.layout.fragment_instructions;
+    }
+
+    private boolean doesVideoUrlExist(String videoUrl) {
+        return videoUrl != null && !videoUrl.isEmpty();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(KEY_PLAYBACK_POSITION, playbackPosition);
+        outState.putBoolean(KEY_PLAYBACK_STATE, playbackState);
     }
 
     private void initPlayer(Uri videoUri) {
@@ -70,7 +112,10 @@ public class InstructionsFragment extends BaseFragment {
         simpleExoPlayerView.setPlayer(exoPlayer);
         MediaSource mediaSource = buildMediaSource(videoUri);
         exoPlayer.prepare(mediaSource);
-        exoPlayer.setPlayWhenReady(true);
+        if (playbackPosition != 0) {
+            exoPlayer.seekTo(playbackPosition);
+        }
+        exoPlayer.setPlayWhenReady(playbackState);
     }
 
     private MediaSource buildMediaSource(Uri uri) {
@@ -80,14 +125,21 @@ public class InstructionsFragment extends BaseFragment {
     }
 
     @Override
-    public int getLayoutId() {
-        return R.layout.fragment_instructions;
+    public void onStop() {
+        super.onStop();
+        releasePlayer();
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onPause() {
+        super.onPause();
+        releasePlayer();
+    }
+
+    private void releasePlayer() {
         if (exoPlayer != null) {
+            playbackState = exoPlayer.getPlayWhenReady();
+            playbackPosition = exoPlayer.getCurrentPosition();
             exoPlayer.stop();
             exoPlayer.release();
             exoPlayer = null;
